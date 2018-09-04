@@ -37,6 +37,11 @@ import requests
 class NetstorageError(Exception):
     """Base-class for all exceptions raised by Netstorage Class"""
 
+proxies = {
+  'http': 'http://x.x.x.x:3128',
+  'https': 'http://x.x.x.x:3128',
+}
+
 
 class Netstorage:
     def __init__(self, hostname, keyname, key, ssl=False):
@@ -109,21 +114,21 @@ class Netstorage:
         response = None
         if kwargs['method'] == 'GET':
             if kwargs['action'] == 'download':
-                response = self.http_client.get(request_url, headers=headers, stream=True)
+                response = self.http_client.get(request_url, headers=headers, stream=True, proxies=proxies)
                 if 'stream' not in kwargs.keys():
                     self._download_data_from_response(response, kwargs['path'], kwargs['destination'])
             else:
-                response = self.http_client.get(request_url, headers=headers)
+                response = self.http_client.get(request_url, headers=headers, proxies=proxies)
 
         elif kwargs['method'] == 'POST':
-            response = self.http_client.post(request_url, headers=headers)
+            response = self.http_client.post(request_url, headers=headers, proxies=proxies)
 
         elif kwargs['method'] == 'PUT': # Use only upload
             if 'stream' in kwargs.keys():
-                response = self.http_client.put(request_url, headers=headers, data=kwargs['stream'])
+                response = self.http_client.put(request_url, headers=headers, data=kwargs['stream'], proxies=proxies)
             elif kwargs['action'].startswith('upload'):
                 mmapped_data = self._upload_data_to_request(kwargs['source'])
-                response = self.http_client.put(request_url, headers=headers, data=mmapped_data)
+                response = self.http_client.put(request_url, headers=headers, data=mmapped_data, proxies=proxies)
                 if not isinstance(mmapped_data, str):
                     mmapped_data.close()
             
